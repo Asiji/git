@@ -1,26 +1,42 @@
-const http = require('http');
-const fs = require('fs');
+const express = require('express');
+const multer = require('multer');
 const path = require('path');
-const mime = require('mime-types');
+const app = express();
+const port = 3000;
 
-const server = http.createServer((req, res) => {
-    let filePath = path.join(__dirname, 'public', req.url === '/' ? 'index.html' : req.url);
-
-    fs.readFile(filePath, (err, content) => {
-        if (err) {
-            if (err.code === 'ENOENT') {
-                res.writeHead(404, { 'Content-Type': 'text/html' });
-                res.end('<h1>404 - File Not Found</h1>', 'utf8');
-            } else {
-                res.writeHead(500);
-                res.end(`Server Error: ${err.code}`);
-            }
-        } else {
-            res.writeHead(200, { 'Content-Type': mime.lookup(filePath) });
-            res.end(content, 'utf8');
-        }
-    });
+// Set up storage configuration for multer
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/'); // store files in the 'uploads' folder
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname)); // rename the file to avoid conflicts
+    }
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const upload = multer({ storage: storage });
+
+// Serve static files (images) from the 'uploads' folder
+app.use('/uploads', express.static('uploads'));
+
+// Serve the HTML file
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Handle file upload
+app.post('/upload', upload.single('file'), (req, res) => {
+    if (!req.file) {
+        return res.send('No file uploaded.');
+    }
+    // Return the URL of the uploaded image
+    res.send(`
+        <h2>File Uploaded Successfully!</h2>
+        <img src="/uploads/${req.file.filename}" alt="Uploaded Image" style="max-width: 100%; height: auto;">
+        <p><a href="/">Go back</a></p>
+    `);
+});
+
+app.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
+});
