@@ -1,26 +1,48 @@
-const http = require('http');
-const fs = require('fs');
+const express = require('express');
+const multer = require('multer');
 const path = require('path');
-const mime = require('mime-types');
+const app = express();
 
-const server = http.createServer((req, res) => {
-    let filePath = path.join(__dirname, 'public', req.url === '/' ? 'index.html' : req.url);
 
-    fs.readFile(filePath, (err, content) => {
-        if (err) {
-            if (err.code === 'ENOENT') {
-                res.writeHead(404, { 'Content-Type': 'text/html' });
-                res.end('<h1>404 - File Not Found</h1>', 'utf8');
-            } else {
-                res.writeHead(500);
-                res.end(`Server Error: ${err.code}`);
-            }
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/'); 
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + path.extname(file.originalname)); 
+    }
+});
+
+
+const upload = multer({
+    storage: storage,
+    fileFilter: function (req, file, cb) {
+        const allowedFileTypes = /jpg|jpeg|png|txt|pdf/;
+        const extname = allowedFileTypes.test(path.extname(file.originalname).toLowerCase());
+        const mimeType = allowedFileTypes.test(file.mimetype);
+
+        if (extname && mimeType) {
+            return cb(null, true);
         } else {
-            res.writeHead(200, { 'Content-Type': mime.lookup(filePath) });
-            res.end(content, 'utf8');
+            cb(new Error('Only .jpg, .jpeg, .png, .txt, .pdf files are allowed.'));
         }
+    },
+    limits: { fileSize: 10 * 1024 * 1024 } 
+}).single('file'); 
+
+app.use(express.static('public'));
+
+
+app.post('/upload', (req, res) => {
+    upload(req, res, function (err) {
+        if (err) {
+            return res.status(400).send({ error: err.message });
+        }
+        res.send('File uploaded successfully!');
     });
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Start the server
+app.listen(3000, () => {
+    console.log('Server started on http://localhost:3000');
+});

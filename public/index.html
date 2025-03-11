@@ -8,13 +8,8 @@
     <meta name="author" content="Your Name">
     <title>Node.js File Server</title>
 
-    
     <link rel="stylesheet" href="styles.css">
-
-    
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 
@@ -40,7 +35,12 @@
         </section>
        
         <section>
-            <button class="cta-button">Get Started</button>
+            <h2>Upload a File</h2>
+            <form id="file-upload-form" action="/upload" method="POST" enctype="multipart/form-data">
+                <label for="file">Choose a file to upload:</label>
+                <input type="file" id="file" name="file" accept=".jpg, .jpeg, .png, .txt, .pdf" required>
+                <button type="submit" class="cta-button">Upload File</button>
+            </form>
         </section>
     </main>
 
