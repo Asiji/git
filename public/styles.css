@@ -1,0 +1,14 @@
+body {
+    background-image: url('https://smartyplants.com.au/wp-content/uploads/2012/09/Spearmint_nodes_web.jpg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+  }
+  h1 {
+    color: blue;
+  }
+  p {
+    color: red;
+  }
+
+  
